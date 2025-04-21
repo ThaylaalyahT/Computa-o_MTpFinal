@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';  // Importação do Firebase Core
+import 'package:flutter_finalapp/screens/login_screen.dart';
+import 'package:flutter_finalapp/screens/register_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Garante que o Flutter esteja totalmente inicializado
+  await Firebase.initializeApp(); // Inicializa o Firebase
   runApp(const MyApp());
 }
 
@@ -17,54 +22,53 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class WelcomeForm extends StatefulWidget {
+class WelcomeForm extends StatelessWidget {
   const WelcomeForm({super.key});
-
-  @override
-  State<WelcomeForm> createState() => _WelcomeFormState();
-}
-
-class _WelcomeFormState extends State<WelcomeForm> {
-  final TextEditingController _controller = TextEditingController();
-  String _name = '';
-
-  void _updateName() {
-    setState(() {
-      _name = _controller.text;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bem-vindo!'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            const Text(
-              'Digite seu nome:',
-              style: TextStyle(fontSize: 20),
-            ),
-            TextField(
-              controller: _controller,
-              decoration: const InputDecoration(
-                hintText: 'Ex: Thayla',
+      body: Center( // Garantir que o conteúdo seja centralizado
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'Bem-vindo!',
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _updateName,
-              child: const Text('Enviar'),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              _name.isEmpty ? '' : 'Olá, $_name!',
-              style: const TextStyle(fontSize: 24),
-            ),
-          ],
+              const SizedBox(height: 100), // Ajuste para centralizar mais
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 50), // Tamanho maior para o botão
+                  textStyle: const TextStyle(fontSize: 18), // Texto maior
+                ),
+                child: const Text('Fazer Login'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 50), // Tamanho maior para o botão
+                  textStyle: const TextStyle(fontSize: 18), // Texto maior
+                ),
+                child: const Text('Registrar-se'),
+              ),
+            ],
+          ),
         ),
       ),
     );
