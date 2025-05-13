@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import 'aluno/aluno_dashboard.dart';
@@ -14,47 +12,55 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
 
   String email = '';
   String password = '';
+  bool isLoading = false;
 
-  // Função para login com Google
-  Future<void> _signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        // O usuário cancelou o login
-        return;
-      }
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
-      final user = await _authService.getUserData(userCredential.user!.uid);
+    setState(() => isLoading = true);
 
-      // Navegar para o dashboard do aluno ou professor baseado no tipo
-      if (user != null) {
-        if (user.type == 'aluno') {
+    final user = await _authService.loginWithEmail(email: email, password: password);
+
+    setState(() => isLoading = false);
+
+    if (user != null) {
+      final userData = await _authService.getUserData(user.uid);
+      if (userData != null) {
+        final userType = userData['type'];
+        final appUser = AppUser(
+          uid: user.uid,
+          name: userData['name'],
+          email: userData['email'],
+          type: userData['type'],
+        );
+
+        if (userType == 'aluno') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => AlunoDashboard(user: user)),
+            MaterialPageRoute(
+              builder: (context) => AlunoDashboard(user: appUser),
+            ),
           );
-        } else {
+        } else if (userType == 'professor') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => ProfessorDashboard(user: user)),
+            MaterialPageRoute(
+              builder: (context) => ProfessorDashboard(user: appUser),
+            ),
           );
         }
       }
-    } catch (e) {
-      print('Erro ao fazer login com o Google: $e');
+    } else {
+      _showMessage('Erro ao fazer login. Tente novamente.');
     }
   }
 
@@ -64,50 +70,31 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextFormField(
-              decoration: const InputDecoration(labelText: 'Email'),
-              onChanged: (val) => email = val,
-            ),
-            TextFormField(
-              decoration: const InputDecoration(labelText: 'Senha'),
-              obscureText: true,
-              onChanged: (val) => password = val,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  final user = await _authService.loginWithEmail(email, password);
-                  if (user != null) {
-                    final userData = await _authService.getUserData(user.uid);
-                    if (userData != null) {
-                      if (userData.type == 'aluno') {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => AlunoDashboard(user: userData)),
-                        );
-                      } else {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => ProfessorDashboard(user: userData)),
-                        );
-                      }
-                    }
-                  }
-                } catch (e) {
-                  print('Erro ao fazer login: $e');
-                }
-              },
-              child: const Text('Login'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _signInWithGoogle,
-              child: const Text('Entrar com o Google'),
-            ),
-          ],
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+                validator: (val) => val != null && val.contains('@') ? null : 'Insira um email válido',
+                onChanged: (val) => email = val,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Senha'),
+                obscureText: true,
+                validator: (val) => val != null && val.length >= 6 ? null : 'Senha deve ter pelo menos 6 caracteres',
+                onChanged: (val) => password = val,
+              ),
+              const SizedBox(height: 20),
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                onPressed: _login,
+                child: const Text('Entrar'),
+              ),
+            ],
+          ),
         ),
       ),
     );

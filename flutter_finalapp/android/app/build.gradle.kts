@@ -2,17 +2,17 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")  // Plugin Firebase
+    id("com.google.gms.google-services")
 }
 
 buildscript {
     repositories {
-        google()  // Repositório do Google necessário para o Firebase
+        google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.google.gms:google-services:4.4.2")  // Versão mais recente do plugin
-        classpath("com.google.firebase:firebase-crashlytics-gradle:3.0.3")  // Caso utilize o Firebase Crashlytics
+        classpath("com.google.gms:google-services:4.4.2")
+        classpath("com.google.firebase:firebase-crashlytics-gradle:3.0.3")
     }
 }
 
@@ -50,7 +50,7 @@ flutter {
 }
 
 dependencies {
-    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
     // Outras dependências Firebase, se necessário, como Firestore, Auth, etc.
 }

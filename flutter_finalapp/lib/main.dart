@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';  // Importação do Firebase Core
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 import 'package:flutter_finalapp/screens/login_screen.dart';
 import 'package:flutter_finalapp/screens/register_screen.dart';
+import 'package:flutter_finalapp/screens/aluno/aluno_dashboard.dart';
+import 'package:flutter_finalapp/screens/professor/professor_dashboard.dart';
+import 'package:flutter_finalapp/screens/discipline_screen.dart';
+import 'package:flutter_finalapp/screens/registrar_disciplina.dart';
+import 'package:flutter_finalapp/screens/aluno/aluno_upload.dart';
+import 'package:flutter_finalapp/screens/professor/professor_upload.dart';
+import 'package:flutter_finalapp/screens/professor/registrar_tarefa_screen.dart';
+
+import 'package:flutter_finalapp/models/user_model.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Garante que o Flutter esteja totalmente inicializado
-  await Firebase.initializeApp(); // Inicializa o Firebase
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -17,7 +30,65 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Formulário Flutter',
       theme: ThemeData(primarySwatch: Colors.teal),
-      home: const WelcomeForm(),
+      initialRoute: '/',
+      routes: {
+        '/': (ctx) => const WelcomeForm(),
+        '/login': (ctx) => const LoginScreen(),
+        '/register': (ctx) => const RegisterScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/aluno_dashboard') {
+          final user = settings.arguments as AppUser;
+          return MaterialPageRoute(
+            builder: (_) => AlunoDashboard(user: user),
+          );
+        }
+
+        if (settings.name == '/professor_dashboard') {
+          final user = settings.arguments as AppUser;
+          return MaterialPageRoute(
+            builder: (_) => ProfessorDashboard(user: user),
+          );
+        }
+
+        if (settings.name == '/disciplinas') {
+          final user = settings.arguments as AppUser;
+          return MaterialPageRoute(
+            builder: (_) => DisciplineScreen(user: user),
+          );
+        }
+
+        if (settings.name == '/registrar_disciplina') {
+          final user = settings.arguments as AppUser;
+          return MaterialPageRoute(
+            builder: (_) => RegistrarDisciplinaScreen(user: user),
+          );
+        }
+
+        if (settings.name == '/aluno_upload') {
+          final user = settings.arguments as AppUser;
+          return MaterialPageRoute(
+            builder: (_) => AlunoUploadScreen(user: user),
+          );
+        }
+
+        if (settings.name == '/professor_upload') {
+          final user = settings.arguments as AppUser;
+          return MaterialPageRoute(
+            builder: (_) => ProfessorUploadScreen(user: user),
+          );
+        }
+
+        if (settings.name == '/registrar_tarefa') {
+          final user = settings.arguments as AppUser;
+          return MaterialPageRoute(
+            builder: (_) => RegistrarTarefaScreen(professorId: user.uid,
+              user: user),
+          );
+        }
+
+        return null;
+      },
     );
   }
 }
@@ -28,43 +99,24 @@ class WelcomeForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center( // Garantir que o conteúdo seja centralizado
+      body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
                 'Bem-vindo!',
                 style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 100), // Ajuste para centralizar mais
+              const SizedBox(height: 100),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(200, 50), // Tamanho maior para o botão
-                  textStyle: const TextStyle(fontSize: 18), // Texto maior
-                ),
+                onPressed: () => Navigator.pushNamed(context, '/login'),
                 child: const Text('Fazer Login'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(200, 50), // Tamanho maior para o botão
-                  textStyle: const TextStyle(fontSize: 18), // Texto maior
-                ),
+                onPressed: () => Navigator.pushNamed(context, '/register'),
                 child: const Text('Registrar-se'),
               ),
             ],
