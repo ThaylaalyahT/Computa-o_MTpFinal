@@ -22,32 +22,28 @@ class _RegistrarTarefaScreenState extends State<RegistrarTarefaScreen> {
   final _descricaoController = TextEditingController();
   DateTime? _dataSelecionada;
 
-  void _salvarTarefa() async {
-    if (_formKey.currentState!.validate() && _dataSelecionada != null) {
-      try {
-        await FirebaseFirestore.instance.collection('tarefas').add({
-          'titulo': _tituloController.text.trim(),
-          'descricao': _descricaoController.text.trim(),
-          'data': Timestamp.fromDate(_dataSelecionada!), // conversão segura
-          'professorId': widget.professorId,
-          'entregue': false,
-          'criadoEm': Timestamp.now(),
-        });
+  List<String> _disciplinas = [];
+  String? _disciplinaSelecionada;
 
-        if (mounted) {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Tarefa registrada com sucesso!')),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao salvar tarefa: $e')),
-        );
-      }
-    } else {
+  @override
+  void initState() {
+    super.initState();
+    _carregarDisciplinas();
+  }
+
+  Future<void> _carregarDisciplinas() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('disciplinas')
+          .where('usuarioId', isEqualTo: widget.professorId)
+          .get();
+
+      setState(() {
+        _disciplinas = snapshot.docs.map((doc) => doc['nome'].toString()).toList();
+      });
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, preencha todos os campos e selecione a data.')),
+        SnackBar(content: Text('Erro ao carregar disciplinas: $e')),
       );
     }
   }
@@ -67,6 +63,40 @@ class _RegistrarTarefaScreenState extends State<RegistrarTarefaScreen> {
     }
   }
 
+  void _salvarTarefa() async {
+    if (_formKey.currentState!.validate() &&
+        _dataSelecionada != null &&
+        _disciplinaSelecionada != null) {
+      try {
+        await FirebaseFirestore.instance.collection('tarefas').add({
+          'titulo': _tituloController.text.trim(),
+          'descricao': _descricaoController.text.trim(),
+          'data': Timestamp.fromDate(_dataSelecionada!),
+          'professorId': widget.professorId,
+          'disciplina': _disciplinaSelecionada,
+          'entregue': false,
+          'criadoEm': Timestamp.now(),
+        });
+
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tarefa registrada com sucesso!')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao salvar tarefa: $e')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Por favor, preencha todos os campos e selecione a data.')),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _tituloController.dispose();
@@ -82,35 +112,55 @@ class _RegistrarTarefaScreenState extends State<RegistrarTarefaScreen> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _tituloController,
-                decoration: const InputDecoration(labelText: 'Título'),
-                validator: (value) =>
-                value == null || value.isEmpty ? 'Campo obrigatório' : null,
-              ),
-              TextFormField(
-                controller: _descricaoController,
-                decoration: const InputDecoration(labelText: 'Descrição'),
-                validator: (value) =>
-                value == null || value.isEmpty ? 'Campo obrigatório' : null,
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: _selecionarData,
-                child: Text(
-                  _dataSelecionada == null
-                      ? 'Selecionar Data de Entrega'
-                      : 'Data: ${_dataSelecionada!.toLocal().toString().split(' ')[0]}',
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _tituloController,
+                  decoration: const InputDecoration(labelText: 'Título'),
+                  validator: (value) =>
+                  value == null || value.isEmpty ? 'Campo obrigatório' : null,
                 ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _salvarTarefa,
-                child: const Text('Salvar Tarefa'),
-              ),
-            ],
+                TextFormField(
+                  controller: _descricaoController,
+                  decoration: const InputDecoration(labelText: 'Descrição'),
+                  validator: (value) =>
+                  value == null || value.isEmpty ? 'Campo obrigatório' : null,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(labelText: 'Disciplina'),
+                  value: _disciplinaSelecionada,
+                  items: _disciplinas.map((disciplina) {
+                    return DropdownMenuItem<String>(
+                      value: disciplina,
+                      child: Text(disciplina),
+                    );
+                  }).toList(),
+                  onChanged: (valor) {
+                    setState(() {
+                      _disciplinaSelecionada = valor;
+                    });
+                  },
+                  validator: (value) =>
+                  value == null || value.isEmpty ? 'Selecione uma disciplina' : null,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _selecionarData,
+                  child: Text(
+                    _dataSelecionada == null
+                        ? 'Selecionar Data de Entrega'
+                        : 'Data: ${_dataSelecionada!.toLocal().toString().split(' ')[0]}',
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _salvarTarefa,
+                  child: const Text('Salvar Tarefa'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
