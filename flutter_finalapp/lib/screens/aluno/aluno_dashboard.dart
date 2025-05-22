@@ -76,7 +76,7 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
           ),
         ),
         actions: [
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancelar'),
           ),
@@ -145,9 +145,11 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
                                 IconButton(
                                   icon: const Icon(Icons.add),
                                   onPressed: _adicionarNota,
+
                                 ),
                               ],
                             ),
+                            const Text("Adicione notas para lembrar eventos ou tarefas."),
                           ],
                         ),
                       ),
