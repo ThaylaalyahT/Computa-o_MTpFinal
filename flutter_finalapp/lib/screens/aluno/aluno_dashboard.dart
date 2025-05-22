@@ -1,10 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_finalapp/models/user_model.dart';
 import 'package:flutter_finalapp/models/task_model.dart';
 import 'package:flutter_finalapp/services/auth_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'dart:math';
 
 class AlunoDashboard extends StatefulWidget {
   final AppUser user;
@@ -18,14 +19,6 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
   final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
   String novaNota = '';
-
-  List<String> frasesMotivadoras = [
-    "Acredite em você e todo o resto se encaixará.",
-    "O sucesso é a soma de pequenos esforços repetidos diariamente.",
-    "Nunca é tarde para ser aquilo que você poderia ter sido.",
-    "A única maneira de fazer um excelente trabalho é amar o que você faz.",
-    "A educação é a arma mais poderosa que você pode usar para mudar o mundo. — Nelson Mandela",
-  ];
 
   Future<void> _logout(BuildContext ctx) async {
     await _auth.logout();
@@ -42,6 +35,30 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
     return snapshot.docs.map((doc) => Task.fromMap(doc.data(), doc.id)).toList();
   }
 
+  Future<String> _buscarFraseApi() async {
+    final url = Uri.parse('https://zenquotes.io/api/random');
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        print('Resposta da API: ${response.body}'); // para debug
+        final data = jsonDecode(response.body);
+
+        if (data is List && data.isNotEmpty) {
+          final frase = data[0]['q'] ?? '';
+          final autor = data[0]['a'] ?? '';
+          if (frase.isNotEmpty && autor.isNotEmpty) {
+            return '$frase — $autor';
+          }
+        }
+      }
+    } catch (e) {
+      print('Erro ao buscar frase motivadora: $e');
+    }
+    return 'Seja sua melhor versão todos os dias.';
+  }
+
+
   void _adicionarNota() {
     showDialog(
       context: context,
@@ -52,7 +69,7 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
           child: TextFormField(
             autofocus: true,
             maxLines: 3,
-            decoration: const InputDecoration(hintText: 'Escreva sua nota aqui...'),
+            decoration: const InputDecoration(hintText: 'Escreva a sua nota aqui...'),
             validator: (value) =>
             value == null || value.trim().isEmpty ? 'Nota não pode ser vazia' : null,
             onChanged: (value) => novaNota = value.trim(),
@@ -66,12 +83,19 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
           ElevatedButton(
             onPressed: () async {
               if (_formKey.currentState!.validate()) {
-                await FirebaseFirestore.instance.collection('notas').add({
-                  'uid': widget.user.uid,
-                  'conteudo': novaNota,
-                  'dataCriacao': FieldValue.serverTimestamp(),
-                });
-                Navigator.pop(context);
+                try {
+                  await FirebaseFirestore.instance.collection('notas').add({
+                    'uid': widget.user.uid,
+                    'conteudo': novaNota,
+                    'data': Timestamp.now(), // salva a data da nota
+                  });
+                  Navigator.pop(context);
+                } catch (e) {
+                  // Em caso de erro, pode mostrar uma mensagem para o usuário
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erro ao salvar a nota: $e')),
+                  );
+                }
               }
             },
             child: const Text('Salvar'),
@@ -81,10 +105,9 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
-    final fraseAleatoria = frasesMotivadoras[Random().nextInt(frasesMotivadoras.length)];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard do Aluno'),
@@ -125,44 +148,13 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            StreamBuilder<QuerySnapshot>(
-                              stream: FirebaseFirestore.instance
-                                  .collection('notas')
-                                  .where('uid', isEqualTo: widget.user.uid)
-                                  .orderBy('dataCriacao', descending: true)
-                                  .snapshots(),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const Center(child: CircularProgressIndicator());
-                                }
-
-                                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                                  return const Text('Nenhuma nota ainda.');
-                                }
-
-                                final notas = snapshot.data!.docs
-                                    .map((doc) => doc['conteudo'] as String)
-                                    .toList();
-
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: notas
-                                      .map((n) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 6.0),
-                                    child: Text("• $n"),
-                                  ))
-                                      .toList(),
-                                );
-                              },
-                            ),
                           ],
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  // FRASE MOTIVADORA
+                  // FRASE MOTIVADORA DA API
                   Expanded(
                     child: Card(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -175,9 +167,20 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
                             const Text('Frase motivadora',
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                             const SizedBox(height: 8),
-                            Text(
-                              fraseAleatoria,
-                              style: const TextStyle(fontStyle: FontStyle.italic),
+                            FutureBuilder<String>(
+                              future: _buscarFraseApi(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const CircularProgressIndicator();
+                                }
+                                if (snapshot.hasError) {
+                                  return const Text('Erro ao buscar frase.');
+                                }
+                                return Text(
+                                  snapshot.data ?? '',
+                                  style: const TextStyle(fontStyle: FontStyle.italic),
+                                );
+                              },
                             ),
                           ],
                         ),
