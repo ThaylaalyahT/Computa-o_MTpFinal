@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user_model.dart';
 
-class RegistrarDisciplinaScreen extends StatefulWidget {
+class RegistarDisciplinaScreen extends StatefulWidget {
   final AppUser user;
-  const RegistrarDisciplinaScreen({super.key, required this.user});
+  const RegistarDisciplinaScreen({super.key, required this.user});
 
   @override
-  State<RegistrarDisciplinaScreen> createState() => _RegistrarDisciplinaScreenState();
+  State<RegistarDisciplinaScreen> createState() => _RegistarDisciplinaScreenState();
 }
 
-class _RegistrarDisciplinaScreenState extends State<RegistrarDisciplinaScreen> {
+class _RegistarDisciplinaScreenState extends State<RegistarDisciplinaScreen> {
   final _formKey = GlobalKey<FormState>();
   String nome = '';
   String descricao = '';
@@ -31,7 +31,7 @@ class _RegistrarDisciplinaScreenState extends State<RegistrarDisciplinaScreen> {
       });
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Disciplina registrada!')),
+        const SnackBar(content: Text('Disciplina registada!')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -45,7 +45,7 @@ class _RegistrarDisciplinaScreenState extends State<RegistrarDisciplinaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar Disciplina')),
+      appBar: AppBar(title: const Text('Registar Disciplina')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(

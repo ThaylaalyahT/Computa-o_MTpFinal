@@ -39,7 +39,7 @@ class _ProfessorDashboardState extends State<ProfessorDashboard> {
           ),
         ),
         actions: [
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancelar'),
           ),
@@ -163,27 +163,8 @@ class _ProfessorDashboardState extends State<ProfessorDashboard> {
                   'Tarefas recebidas',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'nova_tarefa') {
-                      Navigator.pushNamed(
-                        context,
-                        '/registrar_tarefa',
-                        arguments: widget.user,
-                      );
-                    }
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(
-                      value: 'nova_tarefa',
-                      child: Text('Registrar nova tarefa'),
-                    ),
-                  ],
-                ),
-              ],
+            ],
             ),
-            const SizedBox(height: 10),
-
             // Lista de tarefas
             Expanded(
               child: StreamBuilder<QuerySnapshot>(

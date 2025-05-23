@@ -41,7 +41,11 @@ class _LoginScreenState extends State<LoginScreen> {
           name: userData['name'],
           email: userData['email'],
           type: userData['type'],
+          disciplines: userData['disciplines'] != null
+              ? List<String>.from(userData['disciplines'].map((e) => e.toString()))
+              : <String>[],
         );
+
 
         if (userType == 'aluno') {
           Navigator.pushReplacement(
@@ -77,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Email'),
                 keyboardType: TextInputType.emailAddress,
-                validator: (val) => val != null && val.contains('@') ? null : 'Insira um email válido',
+                validator: (val) => val != null && val.contains('@') ? null : 'Insira um email vÃ¡lido',
                 onChanged: (val) => email = val,
               ),
               TextFormField(

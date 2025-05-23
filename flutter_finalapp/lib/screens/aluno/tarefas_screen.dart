@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../../models/task_model.dart';
 
 class TarefasPendentesScreen extends StatelessWidget {
-  const TarefasPendentesScreen({Key? key}) : super(key: key);
+  const TarefasPendentesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

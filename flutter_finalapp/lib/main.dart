@@ -7,10 +7,10 @@ import 'package:flutter_finalapp/screens/register_screen.dart';
 import 'package:flutter_finalapp/screens/aluno/aluno_dashboard.dart';
 import 'package:flutter_finalapp/screens/professor/professor_dashboard.dart';
 import 'package:flutter_finalapp/screens/discipline_screen.dart';
-import 'package:flutter_finalapp/screens/registrar_disciplina.dart';
+import 'package:flutter_finalapp/screens/registar_disciplina.dart';
 import 'package:flutter_finalapp/screens/aluno/aluno_upload.dart';
-import 'package:flutter_finalapp/screens/professor/professor_upload.dart';
-import 'package:flutter_finalapp/screens/professor/registrar_tarefa_screen.dart';
+import 'package:flutter_finalapp/screens/professor/professor_upload.dart' as upload;
+import 'package:flutter_finalapp/screens/professor/registar_tarefa_screen.dart' as registrar;
 
 import 'package:flutter_finalapp/models/user_model.dart';
 
@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Formulário Flutter',
+      title: 'FormulÃ¡rio Flutter',
       theme: ThemeData(primarySwatch: Colors.teal),
       initialRoute: '/',
       routes: {
@@ -61,7 +61,7 @@ class MyApp extends StatelessWidget {
         if (settings.name == '/registrar_disciplina') {
           final user = settings.arguments as AppUser;
           return MaterialPageRoute(
-            builder: (_) => RegistrarDisciplinaScreen(user: user),
+            builder: (_) => RegistarDisciplinaScreen(user: user),
           );
         }
 
@@ -75,15 +75,18 @@ class MyApp extends StatelessWidget {
         if (settings.name == '/professor_upload') {
           final user = settings.arguments as AppUser;
           return MaterialPageRoute(
-            builder: (_) => ProfessorUploadScreen(user: user),
+            builder: (_) => registrar.RegistarTarefaScreen(
+              user: user,
+              professorId: user.uid,
+            ),
           );
         }
 
         if (settings.name == '/registrar_tarefa') {
           final user = settings.arguments as AppUser;
           return MaterialPageRoute(
-            builder: (_) => RegistrarTarefaScreen(professorId: user.uid,
-              user: user),
+            builder: (_) => upload.RegistarTarefaScreen(professorId: user.uid,
+                user: user),
           );
         }
 
@@ -105,8 +108,9 @@ class WelcomeForm extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Image.asset('assets/images/learnly_logo.png', width: 100),
               const Text(
-                'Bem-vindo!',
+                'Learnly!',
                 style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 100),
@@ -117,7 +121,7 @@ class WelcomeForm extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => Navigator.pushNamed(context, '/register'),
-                child: const Text('Registrar-se'),
+                child: const Text('Registar-se'),
               ),
             ],
           ),

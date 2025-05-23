@@ -41,7 +41,6 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        print('Resposta da API: ${response.body}'); // para debug
         final data = jsonDecode(response.body);
 
         if (data is List && data.isNotEmpty) {
@@ -104,6 +103,54 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
       ),
     );
   }
+  Future<List<Map<String, dynamic>>> _buscarNotasDoUsuario(String uid) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('notas')
+        .where('uid', isEqualTo: uid)
+        .orderBy('data', descending: true)
+        .get();
+
+    return snapshot.docs.map((doc) => {
+      'id': doc.id,
+      'conteudo': doc['conteudo'],
+      'data': (doc['data'] as Timestamp).toDate(),
+    }).toList();
+  }
+
+  void _mostrarNotasDoUsuario() async {
+    final notas = await _buscarNotasDoUsuario(widget.user.uid);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Suas notas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            ...notas.map((nota) {
+              final dataFormatada = DateFormat('dd/MM/yyyy – HH:mm').format(nota['data']);
+              return ListTile(
+                title: Text(nota['conteudo']),
+                subtitle: Text(dataFormatada),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () async {
+                    await FirebaseFirestore.instance.collection('notas').doc(nota['id']).delete();
+                    Navigator.pop(context);
+                    _mostrarNotasDoUsuario(); // recarrega após deletar
+                  },
+                ),
+              );
+            }).toList(),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
 
 
   @override
@@ -130,31 +177,34 @@ class _AlunoDashboardState extends State<AlunoDashboard> {
                 children: [
                   // NOTAS
                   Expanded(
-                    child: Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Text('Notas',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                const Spacer(),
-                                IconButton(
-                                  icon: const Icon(Icons.add),
-                                  onPressed: _adicionarNota,
-
-                                ),
-                              ],
-                            ),
-                            const Text("Adicione notas para lembrar eventos ou tarefas."),
-                          ],
+                    child: GestureDetector(
+                      onTap: _mostrarNotasDoUsuario,
+                      child: Card(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Text('Notas',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: const Icon(Icons.add),
+                                    onPressed: _adicionarNota,
+                                  ),
+                                ],
+                              ),
+                              const Text("Adicione notas para lembrar eventos ou tarefas."),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 10),
                   // FRASE MOTIVADORA DA API
                   Expanded(

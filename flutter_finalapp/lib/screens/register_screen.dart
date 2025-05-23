@@ -16,6 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String email = '';
   String password = '';
   String type = 'aluno'; // Tipo padrão
+  List<String> disciplines = []; // Lista vazia inicialmente
 
   bool isLoading = false;
 
@@ -31,21 +32,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => isLoading = true);
 
     try {
-      // Registrar e salvar dados no Firestore
       final user = await _authService.registerWithEmail(
         name: name,
         email: email,
         password: password,
         type: type,
+        disciplines: [], // Passar lista vazia no registo
       );
 
       setState(() => isLoading = false);
 
       if (user != null) {
-        _showMessage('Registro bem-sucedido!');
+        _showMessage('Registo bem-sucedido!');
         Navigator.pushReplacementNamed(context, '/login');
       } else {
-        _showMessage('Erro ao registrar. Tente novamente.');
+        _showMessage('Erro ao registar. Tente novamente.');
       }
     } catch (e) {
       setState(() => isLoading = false);
@@ -56,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registro')),
+      appBar: AppBar(title: const Text('Registo')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -97,7 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
                 onPressed: _register,
-                child: const Text('Registrar'),
+                child: const Text('Registar'),
               ),
             ],
           ),

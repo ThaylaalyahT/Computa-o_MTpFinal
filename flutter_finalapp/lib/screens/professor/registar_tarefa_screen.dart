@@ -2,21 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_finalapp/models/user_model.dart';
 
-class RegistrarTarefaScreen extends StatefulWidget {
+class RegistarTarefaScreen extends StatefulWidget {
   final String professorId;
   final AppUser user;
 
-  const RegistrarTarefaScreen({
+  const RegistarTarefaScreen({
     super.key,
     required this.professorId,
     required this.user,
   });
 
   @override
-  State<RegistrarTarefaScreen> createState() => _RegistrarTarefaScreenState();
+  State<RegistarTarefaScreen> createState() => _RegistarTarefaScreenState();
 }
 
-class _RegistrarTarefaScreenState extends State<RegistrarTarefaScreen> {
+class _RegistarTarefaScreenState extends State<RegistarTarefaScreen> {
   final _formKey = GlobalKey<FormState>();
   final _tituloController = TextEditingController();
   final _descricaoController = TextEditingController();
@@ -81,7 +81,7 @@ class _RegistrarTarefaScreenState extends State<RegistrarTarefaScreen> {
         if (mounted) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Tarefa registrada com sucesso!')),
+            const SnackBar(content: Text('Tarefa registada com sucesso!')),
           );
         }
       } catch (e) {
@@ -107,7 +107,7 @@ class _RegistrarTarefaScreenState extends State<RegistrarTarefaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar Nova Tarefa')),
+      appBar: AppBar(title: const Text('Registar Nova Tarefa')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(

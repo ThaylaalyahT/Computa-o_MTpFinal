@@ -10,6 +10,7 @@ class AuthService {
     required String email,
     required String password,
     required String type,
+    required List<String> disciplines,
   }) async {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
@@ -24,6 +25,7 @@ class AuthService {
         email,
         type,
         password,
+        disciplines,
       );
 
       return userCredential.user;
@@ -73,6 +75,7 @@ class AuthService {
       String email,
       String type,
       String password,
+      List<String> disciplines,
       ) async {
     try {
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
@@ -81,6 +84,7 @@ class AuthService {
         'email': email,
         'type': type,
         'password': password, // Armazenando senha no Firestore (não recomendado em produção)
+        'disciplines': disciplines,
       });
       return true;
     } catch (e) {

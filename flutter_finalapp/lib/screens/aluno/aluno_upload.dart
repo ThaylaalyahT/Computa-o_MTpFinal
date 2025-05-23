@@ -59,7 +59,7 @@ class _AlunoUploadScreenState extends State<AlunoUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Upload de Arquivos')),
+      appBar: AppBar(title: const Text('Upload de Tarefas')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -67,9 +67,9 @@ class _AlunoUploadScreenState extends State<AlunoUploadScreen> {
           children: [
             ElevatedButton(
               onPressed: _isUploading ? null : _uploadFile,
-              child: _isUploading ? const CircularProgressIndicator() : const Text('Selecionar e Enviar Arquivo'),
+              child: _isUploading ? const CircularProgressIndicator() : const Text('Selecionar e Enviar Ficheiro'),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(),
             Text(_statusMessage),
           ],
         ),
