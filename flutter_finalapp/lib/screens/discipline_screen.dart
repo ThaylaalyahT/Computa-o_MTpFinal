@@ -58,7 +58,7 @@ class DisciplineScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           final docs = snap.data!.docs;
-          if (docs.isEmpty) return const Center(child: Text('Nenhuma disciplina registrada.'));
+          if (docs.isEmpty) return const Center(child: Text('Nenhuma disciplina registada.'));
           return ListView.builder(
             itemCount: docs.length,
             itemBuilder: (ctx, i) {
